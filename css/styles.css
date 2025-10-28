@@ -60,7 +60,7 @@ input{
 }
 
 .checkline input {
-   width: 3vw;
+   width: 1vw;
 }
 
 input::placeholder{ color:#6c7284; }
@@ -161,3 +161,7 @@ hr.sep{ border:0; border-top:1px dashed var(--border); margin: 14px 0; }
 @media (prefers-reduced-motion: reduce){
   *{ scroll-behavior: auto; }
 }
+
+
+
+
