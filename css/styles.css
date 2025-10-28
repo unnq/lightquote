@@ -1,8 +1,5 @@
 /* =========================================================
    Christmas Lights Estimator — Mobile-first styles
-   - Cleaner spacing
-   - Better tap targets
-   - Responsive grid that stacks gracefully on phones
    ========================================================= */
 :root{
   --bg: #0b0c10;
@@ -20,7 +17,7 @@
   --pad: clamp(12px, 2.2vw, 18px);
   --gap: clamp(8px, 1.8vw, 14px);
 
-  /* Fluid type for better readability */
+  /* Fluid type */
   --fs-0: clamp(13px, 1.4vw, 14px);
   --fs-1: clamp(16px, 1.8vw, 18px);
   --fs-2: clamp(18px, 2.2vw, 22px);
@@ -59,7 +56,7 @@ button, .btn, select{
   border-radius:10px;
   cursor:pointer;
   font-size: var(--fs-1);
-  min-height: 40px; /* tap target */
+  min-height: 40px;
 }
 button:hover, select:hover{ border-color:#2b3042; }
 select{ appearance:none; padding-right: 28px; }
@@ -89,23 +86,54 @@ input{
   border-radius:10px; border:1px solid var(--border);
   background:#0f1117; color:var(--text);
   font-size: var(--fs-1);
-  min-height: 38px; /* tap target */
+  min-height: 38px;
 }
 input::placeholder{ color:#6c7284; }
 input:focus, select:focus, button:focus{
   outline: 2px solid #2b65ff55; outline-offset: 1px;
 }
 
+.small{ font-size: var(--fs-0); color: var(--muted); }
+.right{ text-align:right; }
+
 /* ---------- Grids ---------- */
 .grid{
   display:grid; gap: var(--gap);
-  grid-template-columns: 2fr 1fr 1fr 1fr 40px; /* default (desktop/tablet) for core row */
   align-items: center;
 }
-.grid.head{
-  color: var(--muted); font-weight:600; font-size: var(--fs-0);
+
+/* Headers for rows with material checkbox */
+.head-grid{
+  grid-template-columns: 56px 2fr 1fr 1fr 1fr 40px;
 }
-.right{ text-align:right; }
+.row-grid{
+  grid-template-columns: 56px 2fr 1fr 1fr 1fr 40px;
+}
+
+.head{ color: var(--muted); font-weight:600; font-size: var(--fs-0); }
+
+/* ---------- Materials area ---------- */
+.materials-grid{
+  display: grid; gap: var(--gap);
+  grid-template-columns: 1.2fr 1fr;
+  align-items: start;
+}
+.materials-left .checkline{
+  display:flex; align-items:center; gap:10px; margin-bottom: 10px;
+}
+.rates{
+  display:grid; gap: var(--gap);
+  grid-template-columns: repeat(2, minmax(0,1fr));
+}
+.matbox{
+  background:#10131a; border:1px solid var(--border); border-radius: var(--radius);
+  padding: var(--pad);
+}
+.matrow{
+  display:flex; align-items:center; justify-content:space-between; gap:14px;
+  margin: 6px 0;
+}
+.matrow.total strong{ font-size: var(--fs-2); }
 
 /* ---------- Summary ---------- */
 .summary{
@@ -125,13 +153,17 @@ input:focus, select:focus, button:focus{
 .badge.bad { background: #3a1717; color:#ffb3b3; border:1px solid #5e1c1c; }
 
 hr.sep{ border:0; border-top:1px dashed var(--border); margin: 14px 0; }
-.small{ font-size: var(--fs-0); color: var(--muted); }
 
-/* ---------- Delete button inside rows ---------- */
-.grid button[aria-label="Delete row"]{
-  min-width: 40px; min-height: 40px;
-  display:grid; place-items:center;
-  padding:0;
+/* ---------- Material checkbox styling ---------- */
+.matCheck{
+  display:flex; align-items:center; gap:8px;
+  justify-content:flex-start;
+}
+.matCheck input{
+  width:20px; height:20px; min-height:20px;
+}
+.matCheck__label{
+  font-size: var(--fs-0); color: var(--muted);
 }
 
 /* =========================================================
@@ -140,70 +172,50 @@ hr.sep{ border:0; border-top:1px dashed var(--border); margin: 14px 0; }
 
 /* Tablet tweaks */
 @media (max-width: 980px){
-  .grid{
-    grid-template-columns: 1.6fr 1fr 1fr 1fr 36px;
+  .materials-grid{
+    grid-template-columns: 1fr;
   }
 }
 
-/* ---------- Mobile layout fix ---------- */
+/* Phone layout: description on its own line; next line shows qty/unit/rate/delete */
 @media (max-width: 640px){
   .container{ margin-top: 20px; }
 
-  .toolbar{
-    gap: 6px;
-  }
-  .toolbar > *{
-    flex: 1 1 auto;
-    min-width: 140px;
+  .toolbar{ gap: 6px; }
+  .toolbar > *{ flex: 1 1 auto; min-width: 140px; }
+
+  /* Head row (compact) */
+  .head-grid{
+    grid-template-columns: 40px 1.2fr 1fr 1fr 1fr 32px;
   }
 
-  /* Head row labels smaller */
-  .grid.head{
-    grid-template-columns: 1fr 1fr 1fr 50px;
-    font-size: var(--fs-0);
-  }
-
-  /* --- Core item rows --- */
-  .card .grid:not(.head){
-    display: grid;
+  /* Item rows */
+  .row-grid{
     grid-template-columns: repeat(4, 1fr);
     gap: 10px;
-    align-items: center;
   }
 
-  /* Description full width, top line */
-  .card .grid:not(.head) > :nth-child(1){
-    grid-column: 1 / -1;
-  }
+  /* Put checkbox + description on first line */
+  .row-grid > :nth-child(1){ grid-column: 1 / 2; align-self:center; }
+  .row-grid > :nth-child(2){ grid-column: 2 / -1; }
 
-  /* Qty, Unit, Rate side by side */
-  .card .grid:not(.head) > :nth-child(2){ grid-column: 1 / 2; }
-  .card .grid:not(.head) > :nth-child(3){ grid-column: 2 / 3; }
-  .card .grid:not(.head) > :nth-child(4){ grid-column: 3 / 4; }
-
-  /* Delete button aligned right edge */
-  .card .grid:not(.head) > :nth-child(5){
-    grid-column: 4 / 5;
-    justify-self: end;
-  }
-
-  /* Compact row spacing */
-  .grid{ gap: 10px; }
+  /* Second line: qty, unit, rate, delete */
+  .row-grid > :nth-child(3){ grid-column: 1 / 2; }
+  .row-grid > :nth-child(4){ grid-column: 2 / 3; }
+  .row-grid > :nth-child(5){ grid-column: 3 / 4; }
+  .row-grid > :nth-child(6){ grid-column: 4 / 5; justify-self: end; }
 
   /* Summary stacks */
   .summary{ grid-template-columns: 1fr; }
-
-  .section-title{ gap: 8px; }
 }
 
-
-/* Ultra-compact for very small screens */
+/* Ultra-compact */
 @media (max-width: 380px){
   .toolbar > *{ min-width: 120px; }
   .header h1{ font-size: clamp(16px, 6vw, 20px); }
 }
 
-/* Motion preferences */
+/* Motion prefs */
 @media (prefers-reduced-motion: reduce){
   *{ scroll-behavior: auto; }
 }
