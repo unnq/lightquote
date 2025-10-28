@@ -145,7 +145,7 @@ hr.sep{ border:0; border-top:1px dashed var(--border); margin: 14px 0; }
   }
 }
 
-/* Phone layout: stack description full-width, then qty/unit/rate row, delete at end */
+/* ---------- Mobile layout fix ---------- */
 @media (max-width: 640px){
   .container{ margin-top: 20px; }
 
@@ -153,49 +153,49 @@ hr.sep{ border:0; border-top:1px dashed var(--border); margin: 14px 0; }
     gap: 6px;
   }
   .toolbar > *{
-    flex: 1 1 auto; /* let buttons/select wrap evenly */
+    flex: 1 1 auto;
     min-width: 140px;
   }
 
-  /* Head row compresses */
+  /* Head row labels smaller */
   .grid.head{
-    grid-template-columns: 1.2fr 1fr 1fr 1fr 24px;
+    grid-template-columns: 1fr 1fr 1fr 50px;
     font-size: var(--fs-0);
   }
 
-  /* Core item grids:
-     - 1st child (Description) spans full width
-     - 2nd (Qty), 3rd (Unit), 4th (Rate) share the row
-     - 5th (Delete) aligns right
-   */
+  /* --- Core item rows --- */
   .card .grid:not(.head){
-    grid-template-columns: 1fr 1fr;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
     align-items: center;
   }
+
+  /* Description full width, top line */
   .card .grid:not(.head) > :nth-child(1){
     grid-column: 1 / -1;
   }
+
+  /* Qty, Unit, Rate side by side */
   .card .grid:not(.head) > :nth-child(2){ grid-column: 1 / 2; }
   .card .grid:not(.head) > :nth-child(3){ grid-column: 2 / 3; }
-  .card .grid:not(.head) > :nth-child(4){
-    grid-column: 1 / 2;
-  }
+  .card .grid:not(.head) > :nth-child(4){ grid-column: 3 / 4; }
+
+  /* Delete button aligned right edge */
   .card .grid:not(.head) > :nth-child(5){
-    grid-column: 2 / 3;
+    grid-column: 4 / 5;
     justify-self: end;
   }
 
-  /* Compact gaps inside rows on phones */
+  /* Compact row spacing */
   .grid{ gap: 10px; }
 
-  /* Summary stacks to single column */
+  /* Summary stacks */
   .summary{ grid-template-columns: 1fr; }
 
-  /* Section headers wrap cleanly */
-  .section-title{
-    gap: 8px;
-  }
+  .section-title{ gap: 8px; }
 }
+
 
 /* Ultra-compact for very small screens */
 @media (max-width: 380px){
