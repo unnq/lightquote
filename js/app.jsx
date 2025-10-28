@@ -6,6 +6,37 @@ const fmtMoney = (n) => (isFinite(n) ? n.toLocaleString(undefined, { style:'curr
 const num = (v) => (v === '' || v === null || v === undefined ? 0 : Number(v));
 const LS_KEY = 'xmas-estimator-v1';
 
+// ---------- Presets ----------
+const PRESETS = {
+  Budget: {
+    linear: { base: 10, steep: 12.5 },
+    count:  { bush: 30, smallTree: 30, largeTree: 45, trim: 35, generic: 35 },
+  },
+  Standard: {
+    linear: { base: 12, steep: 15 },
+    count:  { bush: 35, smallTree: 35, largeTree: 50, trim: 40, generic: 40 },
+  },
+  "High-End": {
+    linear: { base: 14, steep: 18 },
+    count:  { bush: 40, smallTree: 40, largeTree: 55, trim: 50, generic: 50 },
+  },
+};
+
+// Simple keyword rules to classify items for preset rates
+function classifyLinear(row){
+  const L = (row.label || '').toLowerCase();
+  if (L.includes('2nd') || L.includes('second') || L.includes('steep') || L.includes('tile') || L.includes('two-story') || L.includes('two story')) return 'steep';
+  return 'base';
+}
+function classifyCount(row){
+  const L = (row.label || '').toLowerCase();
+  if (L.includes('large') && L.includes('tree')) return 'largeTree';
+  if (L.includes('small') && L.includes('tree')) return 'smallTree';
+  if (L.includes('bush')) return 'bush';
+  if (L.includes('trim') || L.includes('wreath') || L.includes('garland') || L.includes('decor')) return 'trim';
+  return 'generic';
+}
+
 const defaultState = {
   title: 'Medium Tier',
   linear: [
@@ -162,6 +193,7 @@ function LaborSection({ laborers, setLaborers }) {
 // ---------- App ----------
 function App(){
   const [state, setState] = usePersistentState(LS_KEY, defaultState);
+  const [presetKey, setPresetKey] = useState('Standard');
 
   const setLinear = (fnOrRows) => {
     setState(s => ({ ...s, linear: (typeof fnOrRows === 'function' ? fnOrRows(s.linear) : fnOrRows) }));
@@ -171,6 +203,25 @@ function App(){
   };
   const setLaborers = (fnOrRows) => {
     setState(s => ({ ...s, laborers: (typeof fnOrRows === 'function' ? fnOrRows(s.laborers) : fnOrRows) }));
+  };
+
+  // ---- Preset application (updates rates, keeps quantities & labels)
+  const applyPreset = () => {
+    const P = PRESETS[presetKey];
+    if (!P) return;
+
+    setState(s => ({
+      ...s,
+      linear: s.linear.map(row => {
+        if ((row.unit || '').toLowerCase() !== 'ft') return row;
+        const klass = classifyLinear(row); // 'base' | 'steep'
+        return { ...row, rate: P.linear[klass] };
+      }),
+      count: s.count.map(row => {
+        const klass = classifyCount(row);  // 'bush' | 'smallTree' | 'largeTree' | 'trim' | 'generic'
+        return { ...row, rate: P.count[klass] };
+      }),
+    }));
   };
 
   // ---- Totals
@@ -234,6 +285,12 @@ function App(){
           <div className="subtle">Quick on-site calculator • Saves automatically</div>
         </div>
         <div className="toolbar">
+          {/* Presets control */}
+          <select value={presetKey} onChange={(e)=>setPresetKey(e.target.value)}>
+            {Object.keys(PRESETS).map(k=> <option key={k} value={k}>{k}</option>)}
+          </select>
+          <button onClick={applyPreset}>Apply Preset</button>
+
           <button onClick={resetToDefault}>Reset Template</button>
           <button onClick={exportJSON}>Export</button>
           <button onClick={importJSON}>Import</button>
