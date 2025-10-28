@@ -5,7 +5,7 @@ const { useState, useEffect, useMemo } = React;
 const fmtMoney = (n) =>
   isFinite(n) ? n.toLocaleString(undefined, { style: "currency", currency: "USD", maximumFractionDigits: 2 }) : "$0";
 const num = (v) => (v === "" || v === null || v === undefined ? 0 : Number(v));
-const LS_KEY = "xmas-estimator-v5";
+const LS_KEY = "xmas-estimator-v6";
 
 // ---------- Presets ----------
 const PRESETS = {
@@ -227,7 +227,6 @@ function QuoteView({ state, totals }) {
         <div className="quote-total-row">
           <div>Subtotal</div><div className="right">{fmtMoney(totals.revenue)}</div>
         </div>
-        {/* If you ever add tax, add a row here */}
         <div className="quote-total-row grand">
           <div>Total</div><div className="right">{fmtMoney(totals.revenue)}</div>
         </div>
@@ -346,7 +345,9 @@ function App() {
             </div>
           </div>
 
-          <div className="card">
+          {/* Collapsible Quote Info (default collapsed) */}
+          <details className="card accordion">
+            <summary className="accordion__summary">Quote Info</summary>
             <div className="kv">
               <div className="field">
                 <label>Estimate Title</label>
@@ -360,7 +361,6 @@ function App() {
                 <label>Company Contact</label>
                 <input value={`${state.company.phone} • ${state.company.email}`}
                        onChange={(e)=>{
-                         // lightweight split helper
                          const val = e.target.value;
                          const [p='(555) 555-5555', e1='hello@example.com'] = val.split('•').map(t=>t.trim());
                          setState(s=>({...s, company:{...s.company, phone:p, email:e1}}));
@@ -388,19 +388,14 @@ function App() {
                        }}/>
               </div>
               <div className="field">
-                <label>Overhead (flat $)</label>
-                <input type="number" step="1" min="0" value={state.overheadFlat}
-                       onChange={(e) => setState((s) => ({ ...s, overheadFlat: e.target.value }))}/>
-              </div>
-              <div className="field">
                 <label>Notes (shown on quote)</label>
                 <input value={state.notes} onChange={(e)=>setState(s=>({...s, notes:e.target.value}))}/>
               </div>
             </div>
+          </details>
 
-            <hr className="sep" />
-
-            {/* Materials settings */}
+          {/* Materials settings (Overhead moved here) */}
+          <div className="card">
             <div className="materials-grid">
               <div className="materials-left">
                 <label className="checkline">
@@ -423,6 +418,7 @@ function App() {
                   </div>
                 </div>
               </div>
+
               <div className="materials-right">
                 <div className="matbox">
                   <div className="matrow"><span>Auto materials</span><strong>{fmtMoney(materialsAuto)}</strong></div>
@@ -430,7 +426,15 @@ function App() {
                     <span>Flat materials</span>
                     <input type="number" min="0" step="1"
                            value={state.materialsFlat}
-                           onChange={(e) => setState((s) => ({ ...s, materialsFlat: e.target.value }))}/>
+                           onChange={(e) => setState((s) => ({ ...s, materialsFlat: e.target.value }))}
+                    />
+                  </div>
+                  <div className="matrow">
+                    <span>Overhead (flat)</span>
+                    <input type="number" min="0" step="1"
+                           value={state.overheadFlat}
+                           onChange={(e) => setState((s) => ({ ...s, overheadFlat: e.target.value }))}
+                    />
                   </div>
                   <hr className="sep" />
                   <div className="matrow total"><span>Total materials</span><strong>{fmtMoney(materialsTotal)}</strong></div>
@@ -455,7 +459,7 @@ function App() {
                 <h3>Expenses</h3>
                 <div className="big">{fmtMoney(expenses)}</div>
                 <div className="small">
-                  Labor {fmtMoney(laborTotal)} • Materials {fmtMoney(materialsTotal)} • Overhead {fmtMoney(overhead)}
+                  Labor {fmtMoney(laborTotal)} • Materials {fmtMoney(materialsTotal)} • Overhead {fmtMoney(num(state.overheadFlat))}
                 </div>
               </div>
               <div className="box">
