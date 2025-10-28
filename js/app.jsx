@@ -5,7 +5,7 @@ const { useState, useEffect, useMemo } = React;
 const fmtMoney = (n) =>
   isFinite(n) ? n.toLocaleString(undefined, { style: "currency", currency: "USD", maximumFractionDigits: 2 }) : "$0";
 const num = (v) => (v === "" || v === null || v === undefined ? 0 : Number(v));
-const LS_KEY = "xmas-estimator-v2";
+const LS_KEY = "xmas-estimator-v3";
 
 // ---------- Presets ----------
 const PRESETS = {
@@ -52,16 +52,21 @@ function classifyCount(row) {
 const defaultState = {
   title: "Medium Tier",
   linear: [
-    { id: crypto.randomUUID(), label: "1st Story Roofline", quantity: 80, unit: "ft", rate: 7.5 },
-    { id: crypto.randomUUID(), label: "2nd Story Roofline", quantity: 60, unit: "ft", rate: 7.5 },
+    { id: crypto.randomUUID(), selected: true, label: "1st Story Roofline", quantity: 80, unit: "ft", rate: 7.5 },
+    { id: crypto.randomUUID(), selected: true, label: "2nd Story Roofline", quantity: 60, unit: "ft", rate: 7.5 },
   ],
   count: [
-    { id: crypto.randomUUID(), label: "Large Trees", quantity: 20, unit: "strands", rate: 45 },
-    { id: crypto.randomUUID(), label: "Bushes", quantity: 8, unit: "strands", rate: 30 },
-    { id: crypto.randomUUID(), label: "Small Trees", quantity: 12, unit: "strands", rate: 30 },
-    { id: crypto.randomUUID(), label: "Decorative Trim", quantity: 3, unit: "strands", rate: 40 },
+    { id: crypto.randomUUID(), selected: true, label: "Large Trees", quantity: 20, unit: "strands", rate: 45 },
+    { id: crypto.randomUUID(), selected: true, label: "Bushes", quantity: 8, unit: "strands", rate: 30 },
+    { id: crypto.randomUUID(), selected: true, label: "Small Trees", quantity: 12, unit: "strands", rate: 30 },
+    { id: crypto.randomUUID(), selected: true, label: "Decorative Trim", quantity: 3, unit: "strands", rate: 40 },
   ],
-  materialsFlat: 600,
+  // Materials
+  materialsFlat: 600,                 // you can freely edit this for fixed costs
+  materialsAutoEnabled: true,         // checkbox: calculate based on selected items
+  materialsRateLinear: 0.7,           // $/ft (range 0.50–0.85)
+  materialsRateStrand: 12,            // $/strand (range 10–16)
+  // Other
   overheadFlat: 0,
   laborers: [
     { id: crypto.randomUUID(), name: "Laborer 1", wage: 25, hours: 8 },
@@ -97,10 +102,26 @@ function LineRow({ row, onChange, onDelete }) {
 
   return (
     <div>
-      {/* Grid row for inputs; mobile CSS will force 2 lines:
-          [Description] full width, then [Qty][Unit][Rate][Delete] */}
-      <div className="grid">
-        <input value={row.label} onChange={(e) => update("label", e.target.value)} placeholder="Description" />
+      {/* Desktop headers handled separately; mobile CSS stacks:
+          [Mat?] [Description full width]
+          [Qty] [Unit] [Rate] [Delete] */}
+      <div className="grid row-grid">
+        <label className="matCheck">
+          <input
+            type="checkbox"
+            checked={!!row.selected}
+            onChange={(e) => update("selected", e.target.checked)}
+            aria-label="Include in materials calc"
+          />
+          <span className="matCheck__label">Mat</span>
+        </label>
+
+        <input
+          value={row.label}
+          onChange={(e) => update("label", e.target.value)}
+          placeholder="Description"
+        />
+
         <input
           type="number"
           step="1"
@@ -124,7 +145,9 @@ function LineRow({ row, onChange, onDelete }) {
       </div>
 
       {/* Line total under the row, aligned right */}
-      <div className="small right" style={{ marginTop: 4 }}>Line Total: <strong>{fmtMoney(lineTotal)}</strong></div>
+      <div className="small right" style={{ marginTop: 4 }}>
+        Line Total: <strong>{fmtMoney(lineTotal)}</strong>
+      </div>
     </div>
   );
 }
@@ -133,7 +156,7 @@ function Section({ title, rows, setRows, defaults }) {
   const addRow = () =>
     setRows((rs) => [
       ...rs,
-      { id: crypto.randomUUID(), label: "", quantity: 0, unit: defaults.unit, rate: 0 },
+      { id: crypto.randomUUID(), selected: true, label: "", quantity: 0, unit: defaults.unit, rate: 0 },
     ]);
   const changeRow = (id, next) => setRows((rs) => rs.map((r) => (r.id === id ? next : r)));
   const deleteRow = (id) => setRows((rs) => rs.filter((r) => r.id !== id));
@@ -149,8 +172,8 @@ function Section({ title, rows, setRows, defaults }) {
         </div>
       </div>
 
-      <div className="grid head">
-        {/* Desktop/tablet header; mobile is clear via layout */}
+      <div className="grid head head-grid">
+        <div>Mat</div>
         <div>Description</div>
         <div>Qty</div>
         <div>Unit</div>
@@ -245,29 +268,45 @@ function App() {
       ...s,
       linear: s.linear.map((row) => {
         if ((row.unit || "").toLowerCase() !== "ft") return row;
-        const klass = classifyLinear(row); // 'base' | 'steep'
+        const klass = classifyLinear(row);
         return { ...row, rate: P.linear[klass] };
       }),
       count: s.count.map((row) => {
-        const klass = classifyCount(row); // 'bush' | 'smallTree' | 'largeTree' | 'trim' | 'generic'
+        const klass = classifyCount(row);
         return { ...row, rate: P.count[klass] };
       }),
     }));
   };
 
-  // Totals
+  // ---------- Materials Auto-Calc ----------
+  const autoMaterialsLinear = useMemo(() => {
+    const rate = Math.max(0.5, Math.min(0.85, num(state.materialsRateLinear)));
+    return state.linear.reduce(
+      (sum, r) => sum + (r.selected ? num(r.quantity) : 0) * (String(r.unit).toLowerCase() === "ft" ? rate : 0),
+      0
+    );
+  }, [state.linear, state.materialsRateLinear]);
+
+  const autoMaterialsStrands = useMemo(() => {
+    const rate = Math.max(10, Math.min(16, num(state.materialsRateStrand)));
+    return state.count.reduce((sum, r) => sum + (r.selected ? num(r.quantity) * rate : 0), 0);
+  }, [state.count, state.materialsRateStrand]);
+
+  const materialsAuto = (state.materialsAutoEnabled ? (autoMaterialsLinear + autoMaterialsStrands) : 0);
+  const materialsFlat = num(state.materialsFlat);
+  const materialsTotal = materialsAuto + materialsFlat;
+
+  // ---------- Totals ----------
   const linearTotal = useMemo(() => state.linear.reduce((s, r) => s + num(r.quantity) * num(r.rate), 0), [state.linear]);
   const countTotal = useMemo(() => state.count.reduce((s, r) => s + num(r.quantity) * num(r.rate), 0), [state.count]);
   const revenue = linearTotal + countTotal;
 
   const laborTotal = useMemo(() => state.laborers.reduce((s, l) => s + num(l.wage) * num(l.hours), 0), [state.laborers]);
-  const materials = num(state.materialsFlat);
   const overhead = num(state.overheadFlat);
-  const expenses = laborTotal + materials + overhead;
+  const expenses = laborTotal + materialsTotal + overhead;
 
   const profit = revenue - expenses;
   const margin = revenue > 0 ? profit / revenue : 0;
-
   const marginBadge = margin >= 0.6 ? "good" : margin >= 0.45 ? "warn" : "bad";
 
   // Actions
@@ -332,6 +371,7 @@ function App() {
         </div>
       </div>
 
+      {/* Estimate meta + Materials controls */}
       <div className="card">
         <div className="kv">
           <div className="field">
@@ -342,18 +382,9 @@ function App() {
               placeholder="e.g., Medium Tier"
             />
           </div>
+
           <div className="field">
-            <label>Materials (flat $)</label>
-            <input
-              type="number"
-              step="1"
-              min="0"
-              value={state.materialsFlat}
-              onChange={(e) => setState((s) => ({ ...s, materialsFlat: e.target.value }))}
-            />
-          </div>
-          <div className="field">
-            <label>Customer Acquisition Price (flat $)</label>
+            <label>Overhead (flat $)</label>
             <input
               type="number"
               step="1"
@@ -362,6 +393,7 @@ function App() {
               onChange={(e) => setState((s) => ({ ...s, overheadFlat: e.target.value }))}
             />
           </div>
+
           <div className="field">
             <label>Notes</label>
             <input
@@ -369,6 +401,79 @@ function App() {
               onChange={(e) => setState((s) => ({ ...s, notes: e.target.value }))}
               placeholder="Access notes, HOA, dates…"
             />
+          </div>
+        </div>
+
+        <hr className="sep" />
+
+        <div className="materials-grid">
+          <div className="materials-left">
+            <label className="checkline">
+              <input
+                type="checkbox"
+                checked={!!state.materialsAutoEnabled}
+                onChange={(e) =>
+                  setState((s) => ({ ...s, materialsAutoEnabled: e.target.checked }))
+                }
+              />
+              <span>Calculate material cost based on selected items</span>
+            </label>
+
+            <div className="rates">
+              <div className="field">
+                <label>Linear materials ($/ft) <span className="small">(0.50–0.85)</span></label>
+                <input
+                  type="number"
+                  min="0.5"
+                  max="0.85"
+                  step="0.01"
+                  value={state.materialsRateLinear}
+                  onChange={(e) =>
+                    setState((s) => ({ ...s, materialsRateLinear: e.target.value }))
+                  }
+                />
+              </div>
+              <div className="field">
+                <label>Strand materials ($/strand) <span className="small">(10–16)</span></label>
+                <input
+                  type="number"
+                  min="10"
+                  max="16"
+                  step="0.5"
+                  value={state.materialsRateStrand}
+                  onChange={(e) =>
+                    setState((s) => ({ ...s, materialsRateStrand: e.target.value }))
+                  }
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="materials-right">
+            <div className="matbox">
+              <div className="matrow">
+                <span>Auto materials</span>
+                <strong>{fmtMoney(materialsAuto)}</strong>
+              </div>
+              <div className="matrow">
+                <span>Flat materials</span>
+                <input
+                  type="number"
+                  min="0"
+                  step="1"
+                  value={state.materialsFlat}
+                  onChange={(e) => setState((s) => ({ ...s, materialsFlat: e.target.value }))}
+                />
+              </div>
+              <hr className="sep" />
+              <div className="matrow total">
+                <span>Total materials</span>
+                <strong>{fmtMoney(materialsTotal)}</strong>
+              </div>
+              <div className="small">
+                Tip: keep “Flat” for fixed/non-item costs (timers, special clips, fuel, etc.).
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -397,7 +502,7 @@ function App() {
             <h3>Expenses</h3>
             <div className="big">{fmtMoney(expenses)}</div>
             <div className="small">
-              Labor {fmtMoney(laborTotal)} • Materials {fmtMoney(materials)} • Overhead {fmtMoney(overhead)}
+              Labor {fmtMoney(laborTotal)} • Materials {fmtMoney(materialsTotal)} (auto {fmtMoney(materialsAuto)} + flat {fmtMoney(materialsFlat)}) • Overhead {fmtMoney(overhead)}
             </div>
           </div>
           <div className="box">
@@ -410,8 +515,7 @@ function App() {
         </div>
         <hr className="sep" />
         <div className="small">
-          Tip: aim for <strong>≥ 60% gross margin</strong> or <strong>$150–$200/hr per crew</strong>. Use higher rates for
-          ladders, steep roofs, tile, rush jobs, or long travel.
+          Target <strong>≥ 60% gross margin</strong> or <strong>$150–$200/hr per crew</strong>. Use higher rates for ladders, steep roofs, tile, rush jobs, or long travel.
         </div>
       </div>
     </div>
