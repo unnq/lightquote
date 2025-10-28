@@ -31,191 +31,133 @@ html, body{
   -webkit-text-size-adjust: 100%;
 }
 
-.container{
-  max-width: 1040px;
-  margin: 28px auto;
-  padding: 0 clamp(12px, 3vw, 24px);
-}
+.container{ max-width: 1040px; margin: 28px auto; padding: 0 clamp(12px, 3vw, 24px); }
 
-/* ---------- Header / Toolbar ---------- */
-.header{
-  display:flex; align-items:flex-start; justify-content:space-between; gap: var(--gap);
-  margin-bottom: var(--gap);
-  flex-wrap: wrap;
-}
+/* Header */
+.header{ display:flex; align-items:flex-start; justify-content:space-between; gap: var(--gap); margin-bottom: var(--gap); flex-wrap: wrap; }
 .header h1{ margin:0; font-size: var(--fs-2); }
 .subtle{ color: var(--muted); font-size: var(--fs-0); }
 
-.toolbar{
-  display:flex; gap:8px; flex-wrap:wrap;
-}
+.toolbar{ display:flex; gap:8px; flex-wrap:wrap; }
 button, .btn, select{
-  background:#1b1e28; color:var(--text);
-  border:1px solid var(--border);
-  padding:10px 12px;
-  border-radius:10px;
-  cursor:pointer;
-  font-size: var(--fs-1);
-  min-height: 40px;
+  background:#1b1e28; color:var(--text); border:1px solid var(--border);
+  padding:10px 12px; border-radius:10px; cursor:pointer; font-size: var(--fs-1); min-height: 40px;
 }
 button:hover, select:hover{ border-color:#2b3042; }
 select{ appearance:none; padding-right: 28px; }
 
-/* ---------- Cards ---------- */
-.card{
-  background: var(--card);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
-  padding: var(--pad);
-  margin-bottom: clamp(12px, 2.4vw, 18px);
-}
+/* Cards */
+.card{ background: var(--card); border-radius: var(--radius); box-shadow: var(--shadow); padding: var(--pad); margin-bottom: clamp(12px, 2.4vw, 18px); }
 
-/* ---------- Section titles ---------- */
-.section-title{
-  display:flex; align-items:center; justify-content:space-between; gap: var(--gap);
-  margin-bottom: 10px;
-  flex-wrap: wrap;
-}
-.section-title h2{
-  margin:0; font-size: clamp(16px, 2vw, 20px);
-}
+/* Section titles */
+.section-title{ display:flex; align-items:center; justify-content:space-between; gap: var(--gap); margin-bottom: 10px; flex-wrap: wrap; }
+.section-title h2{ margin:0; font-size: clamp(16px, 2vw, 20px); }
 
-/* ---------- Form elements ---------- */
+/* Inputs */
 input{
-  width:100%; padding:10px 12px;
-  border-radius:10px; border:1px solid var(--border);
-  background:#0f1117; color:var(--text);
-  font-size: var(--fs-1);
-  min-height: 38px;
+  width:100%; padding:10px 12px; border-radius:10px; border:1px solid var(--border);
+  background:#0f1117; color:var(--text); font-size: var(--fs-1); min-height: 38px;
 }
+
+.checkline input {
+   width: 3vw;
+}
+
 input::placeholder{ color:#6c7284; }
-input:focus, select:focus, button:focus{
-  outline: 2px solid #2b65ff55; outline-offset: 1px;
-}
+input:focus, select:focus, button:focus{ outline: 2px solid #2b65ff55; outline-offset: 1px; }
 
 .small{ font-size: var(--fs-0); color: var(--muted); }
 .right{ text-align:right; }
+hr.sep{ border:0; border-top:1px dashed var(--border); margin: 14px 0; }
 
-/* ---------- Grids ---------- */
-.grid{
-  display:grid; gap: var(--gap);
-  align-items: center;
-}
+/* Grids */
+.grid{ display:grid; gap: var(--gap); align-items: center; }
 
-/* Headers for rows with material checkbox */
+/* Head row (no description label)  */
 .head-grid{
-  grid-template-columns: 56px 2fr 1fr 1fr 1fr 40px;
+  grid-template-columns: 56px 2fr 0.9fr 0.9fr 24px 0.9fr 1.1fr 40px;
+  color: var(--muted); font-weight:600; font-size: var(--fs-0);
 }
+
+/* Row grid:
+   Desktop: [Mat][Description][Qty][Unit][×][Rate][LineTotal][Delete] */
 .row-grid{
-  grid-template-columns: 56px 2fr 1fr 1fr 1fr 40px;
+  grid-template-columns: 56px 2fr 0.9fr 0.9fr 24px 0.9fr 1.1fr 40px;
 }
 
-.head{ color: var(--muted); font-weight:600; font-size: var(--fs-0); }
+/* Make each row block have spacing under it (as requested: 2vh) */
+.row{ margin-bottom: 2vh; }
 
-/* ---------- Materials area ---------- */
-.materials-grid{
-  display: grid; gap: var(--gap);
-  grid-template-columns: 1.2fr 1fr;
-  align-items: start;
-}
-.materials-left .checkline{
-  display:flex; align-items:center; gap:10px; margin-bottom: 10px;
-}
-.rates{
-  display:grid; gap: var(--gap);
-  grid-template-columns: repeat(2, minmax(0,1fr));
-}
-.matbox{
-  background:#10131a; border:1px solid var(--border); border-radius: var(--radius);
-  padding: var(--pad);
-}
-.matrow{
-  display:flex; align-items:center; justify-content:space-between; gap:14px;
-  margin: 6px 0;
-}
+/* Materials block */
+.materials-grid{ display: grid; gap: var(--gap); grid-template-columns: 1.2fr 1fr; align-items: start; }
+.materials-left .checkline{ display:flex; align-items:center; gap:10px; margin-bottom: 10px; }
+.rates{ display:grid; gap: var(--gap); grid-template-columns: repeat(2, minmax(0,1fr)); }
+.matbox{ background:#10131a; border:1px solid var(--border); border-radius: var(--radius); padding: var(--pad); }
+.matrow{ display:flex; align-items:center; justify-content:space-between; gap:14px; margin: 6px 0; }
 .matrow.total strong{ font-size: var(--fs-2); }
 
-/* ---------- Summary ---------- */
-.summary{
-  display:grid; gap: var(--gap);
-  grid-template-columns: repeat(3, minmax(0,1fr));
-}
-.summary .box{
-  background:#10131a; border:1px solid var(--border); border-radius: var(--radius);
-  padding: var(--pad);
-}
+/* Summary */
+.summary{ display:grid; gap: var(--gap); grid-template-columns: repeat(3, minmax(0,1fr)); }
+.summary .box{ background:#10131a; border:1px solid var(--border); border-radius: var(--radius); padding: var(--pad); }
 .summary .box h3{ margin:0 0 6px 0; font-size: var(--fs-0); color: var(--muted); }
 .summary .big{ font-size: var(--fs-3); font-weight: 700; }
 
 .badge{ display:inline-block; padding:2px 10px; border-radius:999px; font-size: var(--fs-0); }
-.badge.good{ background: #173a2a; color:#a6f3c8; border:1px solid #1c5e3e; }
-.badge.warn{ background: #3a2f17; color:#ffe3a6; border:1px solid #5e4a1c; }
-.badge.bad { background: #3a1717; color:#ffb3b3; border:1px solid #5e1c1c; }
+.badge.good{ background:#173a2a; color:#a6f3c8; border:1px solid #1c5e3e; }
+.badge.warn{ background:#3a2f17; color:#ffe3a6; border:1px solid #5e4a1c; }
+.badge.bad { background:#3a1717; color:#ffb3b3; border:1px solid #5e1c1c; }
 
-hr.sep{ border:0; border-top:1px dashed var(--border); margin: 14px 0; }
+/* Material checkbox */
+.matCheck{ display:flex; align-items:center; gap:8px; justify-content:flex-start; }
+.matCheck input{ width:20px; height:20px; min-height:20px; }
+.matCheck__label{ font-size: var(--fs-0); color: var(--muted); }
 
-/* ---------- Material checkbox styling ---------- */
-.matCheck{
-  display:flex; align-items:center; gap:8px;
-  justify-content:flex-start;
-}
-.matCheck input{
-  width:20px; height:20px; min-height:20px;
-}
-.matCheck__label{
-  font-size: var(--fs-0); color: var(--muted);
-}
+/* Times symbol + line total */
+.times{ text-align:center; font-weight:700; opacity:.9; }
+.lineTotal{ text-align:right; font-variant-numeric: tabular-nums; }
 
-/* =========================================================
-   RESPONSIVE
-   ========================================================= */
-
-/* Tablet tweaks */
+/* Responsive */
 @media (max-width: 980px){
-  .materials-grid{
-    grid-template-columns: 1fr;
-  }
+  .materials-grid{ grid-template-columns: 1fr; }
 }
 
-/* Phone layout: description on its own line; next line shows qty/unit/rate/delete */
 @media (max-width: 640px){
   .container{ margin-top: 20px; }
-
   .toolbar{ gap: 6px; }
   .toolbar > *{ flex: 1 1 auto; min-width: 140px; }
 
-  /* Head row (compact) */
+  /* Head row compresses on mobile */
   .head-grid{
-    grid-template-columns: 40px 1.2fr 1fr 1fr 1fr 32px;
+    grid-template-columns: 40px 1.2fr 1fr 1fr 22px 1fr 1fr 32px;
   }
 
-  /* Item rows */
+  /* Two-line feel while staying one grid:
+     - First line: [Mat][Description spanning]
+     - Second line: [Qty][Unit][×][Rate][LineTotal][Delete] */
   .row-grid{
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(6, 1fr);
     gap: 10px;
   }
-
-  /* Put checkbox + description on first line */
+  /* Mat */
   .row-grid > :nth-child(1){ grid-column: 1 / 2; align-self:center; }
+  /* Description spans rest of first line */
   .row-grid > :nth-child(2){ grid-column: 2 / -1; }
-
-  /* Second line: qty, unit, rate, delete */
+  /* Qty, Unit, ×, Rate, Total, Delete on line two */
   .row-grid > :nth-child(3){ grid-column: 1 / 2; }
   .row-grid > :nth-child(4){ grid-column: 2 / 3; }
-  .row-grid > :nth-child(5){ grid-column: 3 / 4; }
-  .row-grid > :nth-child(6){ grid-column: 4 / 5; justify-self: end; }
+  .row-grid > :nth-child(5){ grid-column: 3 / 4; text-align:center; }
+  .row-grid > :nth-child(6){ grid-column: 4 / 5; }
+  .row-grid > :nth-child(7){ grid-column: 5 / 6; text-align:right; }
+  .row-grid > :nth-child(8){ grid-column: 6 / 7; justify-self: end; }
 
-  /* Summary stacks */
   .summary{ grid-template-columns: 1fr; }
 }
 
-/* Ultra-compact */
 @media (max-width: 380px){
   .toolbar > *{ min-width: 120px; }
   .header h1{ font-size: clamp(16px, 6vw, 20px); }
 }
 
-/* Motion prefs */
 @media (prefers-reduced-motion: reduce){
   *{ scroll-behavior: auto; }
 }
